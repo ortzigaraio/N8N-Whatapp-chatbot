@@ -1,0 +1,18 @@
+```text
+### INFRAESTRUCTURA ###
+- n8n (Versión 1.x o superior)
+- Base de Datos: Supabase con extensión pgvector instalada
+- Almacenamiento vectorial: Tabla 'documents' con columnas de contenido y embedding
+
+### APIS Y CREDENCIALES ###
+1. WhatsApp Business API:
+   - Token de acceso permanente
+   - ID del número de teléfono
+2. Supabase:
+   - URL del proyecto
+   - Service Role API Key
+3. Proveedores de IA:
+   - Groq API Key (Modelo recomendado: llama-3.1-8b-instant)
+   - Cohere API Key (Modelos: embed-multilingual-v3.0 y rerank-multilingual-v3.0)
+4. Notificaciones de Sistema:
+   - Credenciales SMTP o OAuth2 para envío de correos de alerta
