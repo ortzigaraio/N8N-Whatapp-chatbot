@@ -1,18 +1,56 @@
-```text
-### INFRAESTRUCTURA ###
-- n8n (Versión 1.x o superior)
-- Base de Datos: Supabase con extensión pgvector instalada
-- Almacenamiento vectorial: Tabla 'documents' con columnas de contenido y embedding
+### 1. INFRAESTRUCTURA BASE
+- n8n: Versión 1.0 o superior (auto-alojado o cloud) con soporte para nodos de IA (LangChain).
+- Base de Datos: Supabase (PostgreSQL) con la extensión 'pgvector' activada para almacenamiento de embeddings.
 
-### APIS Y CREDENCIALES ###
-1. WhatsApp Business API:
-   - Token de acceso permanente
-   - ID del número de teléfono
-2. Supabase:
-   - URL del proyecto
-   - Service Role API Key
-3. Proveedores de IA:
-   - Groq API Key (Modelo recomendado: llama-3.1-8b-instant)
-   - Cohere API Key (Modelos: embed-multilingual-v3.0 y rerank-multilingual-v3.0)
-4. Notificaciones de Sistema:
-   - Credenciales SMTP o OAuth2 para envío de correos de alerta
+### 2. APIS Y SERVICIOS EXTERNOS (CREDENCIALES)
+- Meta for Developers: 
+    - WhatsApp Business API configurada.
+    - Token de acceso permanente (System User Access Token).
+    - ID del número de teléfono y ID de la cuenta de WABA.
+- Groq Cloud: 
+    - API Key para acceso al modelo Llama 3.1 (8b o 70b).
+- Cohere: 
+    - API Key para modelos de Embeddings (embed-multilingual-v3.0) y Rerank (rerank-multilingual-v3.0).
+- Correo Electrónico:
+    - Credenciales SMTP o OAuth2 (Gmail/Outlook) para alertas de sistema.
+
+### 3. ESQUEMA DE BASE DE DATOS (SUPABASE)
+Es necesario crear las siguientes tablas para el correcto funcionamiento de la lógica de estados y RAG:
+
+- Tabla 'documents':
+    - id: uuid
+    - content: text (contenido del conocimiento)
+    - metadata: jsonb
+    - embedding: vector(1024) -- Ajustar dimensión según modelo de Cohere
+
+- Tabla 'chat_status':
+    - phone: text (PK)
+    - status: text (valores: 'bot', 'humano')
+    - last_interaction: timestamp
+
+- Tabla 'leads':
+    - phone: text (PK)
+    - name: text
+    - created_at: timestamp
+
+- Tabla 'buffer_mensajes':
+    - id: uuid
+    - phone: text
+    - message: text
+    - timestamp: timestamp
+
+### 4. VARIABLES DE ENTORNO REQUERIDAS
+Configurar en los nodos correspondientes o en el entorno de n8n:
+
+- ADMIN_PHONE: Número de teléfono para recibir alertas y comandos de control.
+- WEBHOOK_URL: URL pública de n8n para recibir eventos de WhatsApp (Meta).
+- RETENTION_HOURS: Tiempo (ej. 4h) para el nodo de auto-reactivación de chats inactivos.
+
+### 5. DEPEDENCIAS DE NODOS N8N
+Asegurarse de tener instalados/activos los siguientes nodos core:
+- WhatsApp Business Node
+- Supabase Node
+- HTTP Request Node
+- LangChain Nodes (Chain, Vector Store, Text Splitter, Embeddings, Chat Model)
+- Wait Node
+- Schedule Trigger Node
