@@ -1,0 +1,2087 @@
+{
+  "name": "Avrix Whatapp Chatbot (Mejorado)",
+  "nodes": [
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Busca información sobre los cursos, servicios y empresa Avrix Global en la base de datos de conocimiento.",
+        "tableName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "documents",
+          "cachedResultName": "documents"
+        },
+        "useReranker": true,
+        "options": {}
+      },
+      "id": "9a396f1a-602c-40bc-942c-27a88e62a828",
+      "name": "Retrieve Context from Supabase",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "position": [
+        7888,
+        3392
+      ],
+      "typeVersion": 1.3,
+      "credentials": {
+        "supabaseApi": {
+          "id": "uZkLPN7m38pfvYQp",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "dcd448ce-72f0-4c83-b721-3417a746473e",
+                    "operator": {
+                      "type": "object",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "leftValue": "={{ $json.messages[0].text }}",
+                    "rightValue": ""
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "query"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "8b2b9810-08c7-452f-a2e0-ba1453586919",
+                    "operator": {
+                      "type": "object",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "leftValue": "={{ $json.messages[0].document }}",
+                    "rightValue": ""
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "document"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b619dfbd-5470-4748-afdf-ed85205b7b38",
+      "name": "Check if Query or Document",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        5776,
+        3792
+      ],
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "textSplittingMode": "custom",
+        "options": {}
+      },
+      "id": "ed8a9c99-35ff-4673-b469-3ff9ce1e9b89",
+      "name": "Convert File to Text",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "position": [
+        8240,
+        3824
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "documents",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "id": "28e079ba-0ea5-45e5-9fe6-be6b51bd158b",
+      "name": "Store Embeddings in Supabase",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "position": [
+        8176,
+        3664
+      ],
+      "typeVersion": 1.3,
+      "credentials": {
+        "supabaseApi": {
+          "id": "uZkLPN7m38pfvYQp",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.mensaje_hibrido || $json.texto_agrupado }}",
+        "options": {
+          "systemMessage": "Eres el asistente virtual oficial de *Avrix Global*, empresa especializada en tecnologías inmersivas (VR/AR), Inteligencia Artificial y formación digital para empresas.\n\n━━━━━━━━━━━━━━━━\n📝 REGLAS DE FORMATO — MUY IMPORTANTE\n━━━━━━━━━━━━━━━━\n\n- Escribe SIEMPRE en mensajes cortos: máximo 3-4 líneas por párrafo.\n- Separa las ideas con doble salto de línea (\\n\\n) para que WhatsApp las muestre como bloques separados.\n- Usa listas con • cuando enumeres 3 o más cosas.\n- Usa *negritas* para destacar nombres de cursos, precios o datos clave.\n- Los links van SIEMPRE en una línea aparte, nunca incrustados en mitad de una frase.\n- NUNCA escribas un bloque de texto largo. Si necesitas explicar mucho, divídelo en secciones con saltos de línea.\n- Usa emojis de forma natural para dar calidez (sin exagerar).\n\nEjemplo de formato CORRECTO:\n¡Claro! 😊 El curso de IA para empresas cubre los fundamentos aplicados al negocio.\n\nLos temas principales son:\n• Automatización de procesos\n• Análisis de datos con IA\n• Casos prácticos reales\n\nPuedes ver todos los detalles aquí:\n🔗 https://avrix.es/curso-ia\n\n━━━━━━━━━━━━━━━━\n👋 MENSAJE DE BIENVENIDA\n━━━━━━━━━━━━━━━━\n\nSi el usuario saluda por primera vez (dice Hola, Buenos días, etc.), responde EXACTAMENTE con este texto:\n\n¡Hola! 👋 Bienvenido/a al canal oficial de *Avrix Global*.\n\nSoy el asistente virtual y puedo ayudarte con:\n\n• Soluciones de *VR Experience* — simulaciones y diseño 3D para la industria\n• Formaciones online en IA, VR y nuevas tecnologías\n\n¿En qué puedo ayudarte hoy? 😊\n\n━━━━━━━━━━━━━━━━\n🔍 RESPONDER PREGUNTAS\n━━━━━━━━━━━━━━━━\n\nUsa siempre la herramienta de búsqueda para dar respuestas precisas basadas en la base de conocimiento de Avrix.\n\nCuando menciones un curso o servicio, incluye el link en una línea aparte así:\n🔗 Más info: [url]\n\n━━━━━━━━━━━━━━━━\n🚨 CUÁNDO USAR PALABRAS CLAVE ESPECIALES\n━━━━━━━━━━━━━━━━\n\nResponde ÚNICAMENTE con la palabra TRANSFERIR_HUMANO (sin más texto) cuando:\n- El usuario pida explícitamente hablar con una persona real o un agente\n- El usuario se queje del servicio\n- El usuario pida un presupuesto personalizado\n\nResponde ÚNICAMENTE con la palabra SIN_INFORMACION (sin más texto) cuando:\n- Hayas buscado en la base de conocimiento y NO hayas encontrado información relevante para responder\n- La pregunta esté fuera del ámbito de Avrix Global y no puedas dar una respuesta útil\n- No tengas suficientes datos para dar una respuesta fiable\n\nIMPORTANTE: Nunca inventes información. Si no lo sabes con certeza, usa SIN_INFORMACION."
+        }
+      },
+      "id": "2a36ecf8-3ce9-4248-9f9e-a807f857cfea",
+      "name": "RAG Query Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        7360,
+        3120
+      ],
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "768049963047541",
+        "recipientPhoneNumber": "={{ $('Webhook').item.json.contacts[0].wa_id }}",
+        "textBody": "={{ $json.message }}",
+        "additionalFields": {}
+      },
+      "id": "1c0fe239-0dcb-4410-be51-77735987d0a3",
+      "name": "Send WhatsApp Reply",
+      "type": "n8n-nodes-base.whatsApp",
+      "position": [
+        8416,
+        3104
+      ],
+      "webhookId": "e5e2f982-af07-4274-8937-88ef5109e71b",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "media",
+        "operation": "mediaUrlGet",
+        "mediaGetId": "={{ $json.messages[0].document.id }}"
+      },
+      "id": "c05e9186-29e0-4c36-98df-10c29d909094",
+      "name": "Get Document URL",
+      "type": "n8n-nodes-base.whatsApp",
+      "position": [
+        7360,
+        3760
+      ],
+      "webhookId": "39934341-fa40-46c5-8c26-9aa2f2b3ffcf",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "db7fa002-5572-40a3-b1a6-b92621b2436e",
+      "name": "Download WhatsApp Document",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        7568,
+        3760
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "path": "1ab0d2bd-3c22-4b18-956a-1b0a8942ce60",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        3840,
+        3744
+      ],
+      "id": "72b07c4d-510c-4369-ac06-36bfb0d6797f",
+      "name": "Webhook",
+      "webhookId": "1ab0d2bd-3c22-4b18-956a-1b0a8942ce60"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "chat_status",
+        "limit": 1,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "phone_number",
+              "condition": "eq",
+              "keyValue": "={{ $json.messages[0].from }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        5296,
+        3696
+      ],
+      "id": "d3ffb417-1db9-4e9d-94fe-010d6312f459",
+      "name": "Consulta de Estado",
+      "credentials": {
+        "supabaseApi": {
+          "id": "uZkLPN7m38pfvYQp",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "bc1971e7-66c4-467d-96e4-8427d26d1d68",
+              "leftValue": "={{ $json.mode }}",
+              "rightValue": "human",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        5568,
+        3840
+      ],
+      "id": "791bc974-926d-4346-abe1-5f1ba07a30bd",
+      "name": "If Bot "
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "transfer-check-001",
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "TRANSFERIR_HUMANO",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Transferir a Humano"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "sininfo-check-001",
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "SIN_INFORMACION",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Sin Información"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        8032,
+        3120
+      ],
+      "id": "5bd498a9-6738-462f-a806-4252d7c49af1",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "chat_status",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "phone_number",
+              "condition": "eq",
+              "keyValue": "={{ $('Webhook').item.json.messages[0].from }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "mode",
+              "fieldValue": "human"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        8416,
+        3296
+      ],
+      "id": "f1a0e113-18b3-4406-8b46-a3190fa99f1c",
+      "name": "Update a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "uZkLPN7m38pfvYQp",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        4400,
+        3232
+      ],
+      "id": "d49550a5-baf0-4d85-8cf8-58872cccf8a9",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://google.com",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        4592,
+        3232
+      ],
+      "id": "2d40039f-2fd8-4d3e-8b32-49626121637c",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "768049963047541",
+        "recipientPhoneNumber": "={{ $('Webhook').item.json.contacts[0].wa_id }}",
+        "textBody": "Documento procesado y guardado en la memoria de Avrix ✅",
+        "additionalFields": {}
+      },
+      "id": "1e48a889-88e7-4878-a6dc-992d85a1ab5b",
+      "name": "Send WhatsApp Reply1",
+      "type": "n8n-nodes-base.whatsApp",
+      "position": [
+        8560,
+        3664
+      ],
+      "webhookId": "e5e2f982-af07-4274-8937-88ef5109e71b",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d644edb8-745c-487b-b841-f3069217ff5f",
+              "leftValue": "={{ $json.messages[0].from }}",
+              "rightValue": "34608145744",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        7760,
+        4000
+      ],
+      "id": "6fd0f1e8-9202-4313-bfc9-9676f6445206",
+      "name": "If_Admin_Archivos"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1650c989-c55f-42d2-9ded-088fc57131c3",
+              "name": "mensaje_hibrido",
+              "value": "=El cliente ha enviado un documento con esta información:\n{{ $json.text }}\n\nSi el cliente ha escrito algún mensaje acompañando al documento, es este:\n{{ $('Webhook').item.json.messages[0].text }}\n\nPor favor, responde a su duda basándote en el documento que acaba de enviar.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        8400,
+        4400
+      ],
+      "id": "f3921e1d-91f2-4a34-8696-8af8a9bca6ae",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        4400,
+        3056
+      ],
+      "id": "ca9705aa-ff2d-4ea9-a55f-a825596f2495",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "sendTo": "ortzi@avrix.es",
+        "subject": "=🚨 ¡Alerta! Error en el bot de Avrix - {{ $json.workflow.name }}",
+        "message": "=Hola equipo,<br><br>\n\nEl chatbot de Avrix Global acaba de sufrir un fallo técnico y no ha podido terminar de procesar un mensaje.<br><br>\n\n<b>Detalles técnicos del fallo:</b><br>\n<ul>\n  <li><b>Motivo del error:</b> {{ $json.execution.error.message }}</li>\n  <li><b>Nodo que ha fallado:</b> {{ $json.execution.lastNodeExecuted }}</li>\n  <li><b>ID de Ejecución:</b> {{ $json.execution.id }}</li>\n</ul>\n\nPor favor, entra en tu servidor de Oracle Cloud y revisa el historial de ejecuciones de n8n para solucionarlo lo antes posible.<br><br>\n\n<i>Sistema Automático de n8n</i>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        4944,
+        3056
+      ],
+      "id": "f08481cc-877d-4584-a3a5-311c640dca51",
+      "name": "El correo de notificacion1",
+      "webhookId": "8132c07f-900b-49d6-a284-45baef8cc266",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "P2sVGyBE9Yn0IGpd",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        8032,
+        4416
+      ],
+      "id": "a0e93c20-919c-4199-a330-59998dbff768",
+      "name": "Extract from File2"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        8032,
+        4240
+      ],
+      "id": "50d6e322-4828-49d7-8f62-49eb2f3d1e1e",
+      "name": "Extract from File1"
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        8032,
+        4064
+      ],
+      "id": "fcff264c-e382-4ab6-ab2f-26ee9add4cd0",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.messages[0].text }}",
+                    "rightValue": "/reactivar",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    },
+                    "id": "3d179cf5-7509-4095-ac7d-8705bc49bbe0"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Comandos"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "fallbackOutput": "extra",
+          "ignoreCase": false
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        4880,
+        3424
+      ],
+      "id": "470493ba-4bd9-4d95-aa8b-b3ad99d4acac",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "chat_status",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "phone_number",
+              "condition": "eq",
+              "keyValue": "={{ $json.messages[0].text.split(' ')[1] }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "mode",
+              "fieldValue": "bot"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        5184,
+        3296
+      ],
+      "id": "3d4c8238-3b25-4663-9cd6-15e1cbd9b912",
+      "name": "Consulta de Estado1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "uZkLPN7m38pfvYQp",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "768049963047541",
+        "recipientPhoneNumber": "={{ $json.messages[0].from }}",
+        "textBody": "✅ Bot reactivado. La IA vuelve a estar al mando de esta conversación.",
+        "additionalFields": {}
+      },
+      "id": "fafb7e1c-4908-438f-bdd9-43f6a7733a7a",
+      "name": "Send WhatsApp Reply2",
+      "type": "n8n-nodes-base.whatsApp",
+      "position": [
+        5536,
+        3296
+      ],
+      "webhookId": "e5e2f982-af07-4274-8937-88ef5109e71b",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "id": "9eb3db32-ca94-4846-9e54-bd9bacb79328",
+      "name": "🤫 Modo Humano Activo",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        5728,
+        3600
+      ]
+    },
+    {
+      "parameters": {
+        "chunkSize": 700,
+        "chunkOverlap": 100,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        8320,
+        4000
+      ],
+      "id": "f025dd21-e008-426e-b486-e383998cf598",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        6288,
+        3392
+      ],
+      "id": "4e004090-5569-4782-83d2-9db2c83b5a1a",
+      "name": "Wait",
+      "webhookId": "6b64d770-e544-4e72-ad7e-dc0c688428d0"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Webhook').item.json.messages[0].from }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        7504,
+        3376
+      ],
+      "id": "ad94b0c2-52d9-4219-8a3b-4e8252b32d73",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "013c7bc3-2946-4e0a-a1cc-a29d5b774a10",
+              "name": "admin_phone",
+              "value": "34608145744",
+              "type": "string"
+            },
+            {
+              "id": "92f7041a-9642-4917-8e12-c51883582103",
+              "name": "whatsapp_id",
+              "value": "768049963047541",
+              "type": "string"
+            },
+            {
+              "id": "c138df13-9bb6-4df0-b3bd-425b0cb96d3f",
+              "name": "email_miguel",
+              "value": "miguel@avrix.es",
+              "type": "string"
+            },
+            {
+              "id": "270d4d2b-f1de-4402-9a3b-9a99fc69c8a9",
+              "name": "email_ortzi",
+              "value": "ortzi@avrix.es",
+              "type": "string"
+            },
+            {
+              "id": "2fa087a3-e7cb-4b36-9b88-5182054fb0d6",
+              "name": "company_name",
+              "value": "Avrix Global",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "51f08571-6796-4f01-92b3-c8add8506fe8",
+      "name": "⚙️ Configuración Global",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4128,
+        3744
+      ]
+    },
+    {
+      "parameters": {
+        "tableId": "buffer_mensajes",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "phone_number",
+              "fieldValue": "={{ $json.messages[0].from }}"
+            },
+            {
+              "fieldId": "mensaje",
+              "fieldValue": "={{ $json.messages[0].text }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        6096,
+        3520
+      ],
+      "id": "70ec0ec9-10cd-48c9-ab99-3959e9dd1870",
+      "name": "Consulta de Estado2",
+      "credentials": {
+        "supabaseApi": {
+          "id": "uZkLPN7m38pfvYQp",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "buffer_mensajes",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "phone_number",
+              "keyValue": "={{ $json.messages[0].from }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        6816,
+        3280
+      ],
+      "id": "1fd1b918-7a0a-4c70-93c6-fb91de8cd48a",
+      "name": "Consulta de Estado3",
+      "credentials": {
+        "supabaseApi": {
+          "id": "uZkLPN7m38pfvYQp",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst mensajes = $input.all().map(item => item.json.mensaje);\n\n\nconst texto_completo = mensajes.join(\"\\n\\n\");\n\n\nreturn [{ json: { texto_agrupado: texto_completo } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7136,
+        3072
+      ],
+      "id": "4f780cf2-6163-45cc-ba12-e5610269c06c",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "buffer_mensajes",
+        "limit": 1,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "phone_number",
+              "condition": "eq",
+              "keyValue": "={{ $json.messages[0].from }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        6464,
+        3280
+      ],
+      "id": "25ed56dc-2b30-4a37-b3ca-12bf23944dac",
+      "name": "Consulta de Estado4",
+      "credentials": {
+        "supabaseApi": {
+          "id": "uZkLPN7m38pfvYQp",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        6832,
+        3056
+      ],
+      "id": "1dac9a4d-5f32-4167-ad13-1b922653f0cb",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "fix-switch3-001",
+                    "leftValue": "={{ $('Consulta de Estado2').item.json.id }}",
+                    "rightValue": "={{ $json.id }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Procesar (IDs coinciden)"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        6624,
+        3168
+      ],
+      "id": "fd4b7901-664e-4443-be07-ff8ea700d0b4",
+      "name": "Switch3"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.1-8b-instant",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        7360,
+        3376
+      ],
+      "id": "45d2db2e-4f4f-47f3-94ab-688a0087581b",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "oaCKM76vwrTbZgbP",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "embed-multilingual-light-v3.0"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsCohere",
+      "typeVersion": 1,
+      "position": [
+        8096,
+        3904
+      ],
+      "id": "302f86a1-d2e3-4eef-84d4-9312ba5348bb",
+      "name": "Embeddings Cohere",
+      "credentials": {
+        "cohereApi": {
+          "id": "AQwDc2sJfKgd7xPa",
+          "name": "CohereApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "tableId": "buffer_mensajes",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "phone_number",
+              "condition": "eq",
+              "keyValue": "={{ $('Webhook').item.json.messages[0].from }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        8672,
+        3104
+      ],
+      "id": "2aa4f6e3-e0ba-4203-abbd-c47fc7aa90bb",
+      "name": "delete_info",
+      "credentials": {
+        "supabaseApi": {
+          "id": "uZkLPN7m38pfvYQp",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "rerank-multilingual-v3.0"
+      },
+      "type": "@n8n/n8n-nodes-langchain.rerankerCohere",
+      "typeVersion": 1,
+      "position": [
+        8048,
+        3536
+      ],
+      "id": "830e72f7-1aef-42eb-9097-951cd1966997",
+      "name": "Reranker Cohere",
+      "credentials": {
+        "cohereApi": {
+          "id": "AQwDc2sJfKgd7xPa",
+          "name": "CohereApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Divide la respuesta del agente en mensajes cortos para WhatsApp\nconst output = $input.first().json.output || '';\n\n// Limpiar la respuesta\nconst cleaned = output.trim();\n\n// Dividir por doble salto de línea (párrafos)\nconst chunks = cleaned\n  .split(/\\n{2,}/)\n  .map(c => c.trim())\n  .filter(c => c.length > 2);\n\n// Si no hay división, devolver el mensaje completo\nif (chunks.length === 0) {\n  return [{ json: { message: cleaned } }];\n}\n\n// Devolver cada párrafo como mensaje separado\nreturn chunks.map(chunk => ({ json: { message: chunk } }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        8224,
+        3104
+      ],
+      "id": "6863b23a-443e-44cc-a994-b678b54c9914",
+      "name": "✂️ Dividir Respuesta"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "768049963047541",
+        "recipientPhoneNumber": "={{ $('Webhook').item.json.contacts[0].wa_id }}",
+        "textBody": "¡Entendido! 🙋\n\nTe vamos a poner en contacto con uno de nuestros asesores de *Avrix Global*.\n\nEn breve alguien del equipo se pondrá contigo. ¡Gracias por tu paciencia! 😊",
+        "additionalFields": {}
+      },
+      "id": "376be5f5-b581-4b81-b592-67fffc097ab0",
+      "name": "📞 Aviso al Cliente",
+      "type": "n8n-nodes-base.whatsApp",
+      "position": [
+        8224,
+        3296
+      ],
+      "webhookId": "e5e2f982-af07-4274-8937-88ef5109e71b",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "768049963047541",
+        "recipientPhoneNumber": "={{ $('Webhook').item.json.contacts[0].wa_id }}",
+        "textBody": "Lo siento, no tengo información suficiente para responder a eso correctamente. 🙏\n\nHe avisado al equipo de *Avrix Global* para que un asesor te contacte y pueda ayudarte mejor.\n\n¡Gracias por tu comprensión! 😊",
+        "additionalFields": {}
+      },
+      "id": "b137a97e-bb72-4af6-86a8-0bc146db0f2d",
+      "name": "📭 Aviso Sin Info al Cliente",
+      "type": "n8n-nodes-base.whatsApp",
+      "position": [
+        8224,
+        3472
+      ],
+      "webhookId": "e5e2f982-af07-4274-8937-88ef5109e71b",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "chat_status",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "phone_number",
+              "condition": "eq",
+              "keyValue": "={{ $('Webhook').item.json.messages[0].from }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "mode",
+              "fieldValue": "human"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        8416,
+        3472
+      ],
+      "id": "c93eb444-9af7-4123-9650-5d3356bee9c3",
+      "name": "Update Sin Info Row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "uZkLPN7m38pfvYQp",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "msg-exists-001",
+              "leftValue": "={{ $json.messages }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "eecbe4b7-1067-439d-9602-1477f34041a8",
+      "name": "🔎 ¿Es un Mensaje?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        4352,
+        3744
+      ],
+      "typeVersion": 2.3
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "type-text-001",
+                    "leftValue": "={{ $json.messages[0].type }}",
+                    "rightValue": "text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Texto"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "type-doc-001",
+                    "leftValue": "={{ $json.messages[0].type }}",
+                    "rightValue": "document",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Documento"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "50d5f8a2-6314-477b-b3a7-3e390fc77bdc",
+      "name": "🛡️ Validar Tipo de Mensaje",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        4608,
+        3712
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "768049963047541",
+        "recipientPhoneNumber": "={{ $json.messages[0].from }}",
+        "textBody": "Lo siento, por ahora solo puedo procesar *mensajes de texto* y *documentos*. 📄\n\nSi tienes alguna pregunta, escríbemela y te ayudo encantado. 😊",
+        "additionalFields": {}
+      },
+      "id": "dc99d56e-8f71-444b-9472-55ad2f25d39f",
+      "name": "💬 Tipo No Soportado",
+      "type": "n8n-nodes-base.whatsApp",
+      "position": [
+        4960,
+        3952
+      ],
+      "webhookId": "e5e2f982-af07-4274-8937-88ef5109e71b",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v17.0/768049963047541/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "id": "eff65da4-a832-4d61-9e63-d9813938f62b",
+      "name": "✅ Marcar Mensaje Leído",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        4944,
+        3696
+      ],
+      "typeVersion": 4.2,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "tableId": "leads",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "phone_number",
+              "fieldValue": "={{ $json.messages[0].from }}"
+            },
+            {
+              "fieldId": "first_message",
+              "fieldValue": "={{ $json.messages[0].text }}"
+            },
+            {
+              "fieldId": "fuente",
+              "fieldValue": "WhatsApp"
+            }
+          ]
+        }
+      },
+      "id": "34864033-5463-4b85-b678-80414a4185d3",
+      "name": "📊 Registrar Lead",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        5520,
+        4032
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "uZkLPN7m38pfvYQp",
+          "name": "Supabase account"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 4
+            }
+          ]
+        }
+      },
+      "id": "7498c967-bb14-49f3-bd7d-7c7498f6851e",
+      "name": "⏰ Auto-Reactivar Bots",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [
+        4400,
+        2816
+      ],
+      "typeVersion": 1.3
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "chat_status",
+        "returnAll": true,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "mode",
+              "condition": "eq",
+              "keyValue": "human"
+            }
+          ]
+        }
+      },
+      "id": "289ede32-66e8-4113-a9c0-3388f7614751",
+      "name": "🔍 Chats en Modo Humano",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        4592,
+        2816
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "uZkLPN7m38pfvYQp",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Filtra chats en modo humano sin actividad durante más de 4 horas\nconst HORAS_LIMITE = 4;\nconst ahora = new Date();\n\nconst inactivos = $input.all().filter(item => {\n  if (!item.json.updated_at) return false;\n  const updatedAt = new Date(item.json.updated_at);\n  const horas = (ahora - updatedAt) / (1000 * 60 * 60);\n  return horas >= HORAS_LIMITE;\n});\n\nif (inactivos.length === 0) {\n  return [{ json: { sin_inactivos: true, total: 0 } }];\n}\n\nreturn inactivos.map(item => ({\n  json: { phone_number: item.json.phone_number, sin_inactivos: false }\n}));"
+      },
+      "id": "e62f68aa-a3c4-40c3-a129-3086bedab12b",
+      "name": "⏱️ Filtrar Inactivos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4784,
+        2816
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "inactivos-check-001",
+              "leftValue": "={{ $json.sin_inactivos }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "2410f0a5-6919-4766-b5de-9eddedf7d9f5",
+      "name": "🚦 ¿Hay Inactivos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        4976,
+        2816
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "chat_status",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "phone_number",
+              "condition": "eq",
+              "keyValue": "={{ $json.phone_number }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "mode",
+              "fieldValue": "bot"
+            }
+          ]
+        }
+      },
+      "id": "f51ef4d9-860c-41b9-b196-065449f2ca7f",
+      "name": "🔄 Reactivar Bot",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        5168,
+        2896
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "uZkLPN7m38pfvYQp",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toRecipients": "ortzi@avrix.es",
+        "subject": "=🚨 ¡Alerta! Error en el bot de Avrix - {{ $json.workflow.name }}",
+        "bodyContent": "=Hola equipo,<br><br>\n\nEl chatbot de Avrix Global acaba de sufrir un fallo técnico y no ha podido terminar de procesar un mensaje.<br><br>\n\n<b>Detalles técnicos del fallo:</b><br>\n<ul>\n  <li><b>Motivo del error:</b> {{ $json.execution.error.message }}</li>\n  <li><b>Nodo que ha fallado:</b> {{ $json.execution.lastNodeExecuted }}</li>\n  <li><b>ID de Ejecución:</b> {{ $json.execution.id }}</li>\n</ul>\n\nPor favor, entra en tu servidor de Oracle Cloud y revisa el historial de ejecuciones de n8n para solucionarlo lo antes posible.<br><br>\n\n<i>Sistema Automático de n8n</i>",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.microsoftOutlook",
+      "typeVersion": 2,
+      "position": [
+        4608,
+        3056
+      ],
+      "id": "397e367c-9b12-4bdd-9c72-0bdfd2cce625",
+      "name": "Send a message",
+      "webhookId": "b2e1b662-7027-4637-a9b3-2e5ee098e141",
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "LMwBWY4aJcsW05zx",
+          "name": "Microsoft Outlook account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toRecipients": "ortzi@avrix.es",
+        "subject": "Intervención Manual Requerida - Avrix Global",
+        "bodyContent": "=Hola,<br><br>\n\nEl chatbot de Avrix ha detectado que el cliente con número <b>{{ $('Webhook').item.json.messages[0].from }}</b> necesita atención personalizada.<br><br>\n\n<b>Último mensaje del cliente:</b><br>\n<blockquote><i>{{ $('Webhook').item.json.messages[0].text }}</i></blockquote><br>\n\nEl bot ha sido desactivado para esta conversación. Por favor, contacta con el cliente a la mayor brevedad posible.<br><br>\n\n<i>Sistema Automático — Avrix Global Bot</i>",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.microsoftOutlook",
+      "typeVersion": 2,
+      "position": [
+        8624,
+        3296
+      ],
+      "id": "a12bab94-0ce0-4d68-8ebb-82c05b4f031e",
+      "name": "Send a message1",
+      "webhookId": "d284dc16-ed67-402c-b403-a3a678c7d279",
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "LMwBWY4aJcsW05zx",
+          "name": "Microsoft Outlook account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toRecipients": "ortzi@avrix.es",
+        "subject": "❓ Pregunta sin respuesta - Avrix Global Chatbot",
+        "bodyContent": "=Hola,<br><br>\n\nEl chatbot de Avrix <b>no ha encontrado información</b> para responder al cliente con número <b>{{ $('Webhook').item.json.messages[0].from }}</b>.<br><br>\n\n<b>Mensaje del cliente:</b><br>\n{{ $('Webhook').item.json.messages[0].text }}<br><br>\n\nEl cliente ha sido informado de que un asesor se pondrá en contacto con él. Por favor, revisa la conversación y respóndele a la mayor brevedad posible.<br><br>\n\n<i>Sistema Automático de n8n — Avrix Global</i>",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.microsoftOutlook",
+      "typeVersion": 2,
+      "position": [
+        8624,
+        3472
+      ],
+      "id": "88cee7cb-26e6-4d4d-a4f2-afa9d4404527",
+      "name": "Send a message2",
+      "webhookId": "31abf8cc-231b-4e78-9a20-02418d5b97df",
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "LMwBWY4aJcsW05zx",
+          "name": "Microsoft Outlook account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Retrieve Context from Supabase": {
+      "ai_tool": [
+        [
+          {
+            "node": "RAG Query Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if Query or Document": {
+      "main": [
+        [
+          {
+            "node": "Consulta de Estado2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Document URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert File to Text": {
+      "ai_document": [
+        [
+          {
+            "node": "Store Embeddings in Supabase",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RAG Query Agent": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Document URL": {
+      "main": [
+        [
+          {
+            "node": "Download WhatsApp Document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download WhatsApp Document": {
+      "main": [
+        [
+          {
+            "node": "If_Admin_Archivos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "⚙️ Configuración Global",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consulta de Estado": {
+      "main": [
+        [
+          {
+            "node": "If Bot ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Bot ": {
+      "main": [
+        [
+          {
+            "node": "🤫 Modo Humano Activo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check if Query or Document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "📞 Aviso al Cliente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "📭 Aviso Sin Info al Cliente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "✂️ Dividir Respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "✂️ Dividir Respuesta": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📞 Aviso al Cliente": {
+      "main": [
+        [
+          {
+            "node": "Update a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Embeddings in Supabase": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Reply1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If_Admin_Archivos": {
+      "main": [
+        [
+          {
+            "node": "Store Embeddings in Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract from File2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract from File1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "RAG Query Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Consulta de Estado1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Consulta de Estado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consulta de Estado1": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Reply2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "RAG Query Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⚙️ Configuración Global": {
+      "main": [
+        [
+          {
+            "node": "🔎 ¿Es un Mensaje?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consulta de Estado2": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Consulta de Estado4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consulta de Estado4": {
+      "main": [
+        [
+          {
+            "node": "Switch3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consulta de Estado3": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch3": {
+      "main": [
+        [
+          {
+            "node": "Consulta de Estado3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "RAG Query Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send WhatsApp Reply": {
+      "main": [
+        [
+          {
+            "node": "delete_info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "RAG Query Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Cohere": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Store Embeddings in Supabase",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Retrieve Context from Supabase",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reranker Cohere": {
+      "ai_reranker": [
+        [
+          {
+            "node": "Retrieve Context from Supabase",
+            "type": "ai_reranker",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Convert File to Text",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📭 Aviso Sin Info al Cliente": {
+      "main": [
+        [
+          {
+            "node": "Update Sin Info Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Sin Info Row": {
+      "main": [
+        [
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔎 ¿Es un Mensaje?": {
+      "main": [
+        [
+          {
+            "node": "🛡️ Validar Tipo de Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🛡️ Validar Tipo de Mensaje": {
+      "main": [
+        [
+          {
+            "node": "✅ Marcar Mensaje Leído",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "✅ Marcar Mensaje Leído",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "💬 Tipo No Soportado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "✅ Marcar Mensaje Leído": {
+      "main": [
+        [
+          {
+            "node": "📊 Registrar Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Registrar Lead": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⏰ Auto-Reactivar Bots": {
+      "main": [
+        [
+          {
+            "node": "🔍 Chats en Modo Humano",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔍 Chats en Modo Humano": {
+      "main": [
+        [
+          {
+            "node": "⏱️ Filtrar Inactivos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⏱️ Filtrar Inactivos": {
+      "main": [
+        [
+          {
+            "node": "🚦 ¿Hay Inactivos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🚦 ¿Hay Inactivos?": {
+      "main": [
+        [],
+        [
+          {
+            "node": "🔄 Reactivar Bot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "5d84e3f4-67bf-4269-9913-ca4ebafdd996",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0b1439d0afe02d8147e47ca3af0f68c41b5620a5a763d8eba030a960ad8a846b"
+  },
+  "id": "b1XXsywM8fTlK5Db",
+  "tags": []
+}
