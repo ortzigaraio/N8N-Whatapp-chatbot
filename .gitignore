@@ -1,0 +1,13 @@
+# Archivos de flujo de n8n
+*.json
+whatsapp_chatbot_rag_v*.json
+
+# Archivos de entorno y credenciales
+.env
+config.local.yaml
+credentials/
+
+# Logs y temporales
+logs/
+*.log
+npm-debug.log*
