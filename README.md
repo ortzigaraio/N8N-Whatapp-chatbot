@@ -16,7 +16,7 @@ El flujo de trabajo se divide en cuatro capas principales:
 > [!NOTE]
 > El sistema incluye un "Buffer de Mensajes" que espera 3 segundos para agrupar múltiples envíos del usuario en una sola consulta al LLM, optimizando el consumo de tokens y mejorando la coherencia de la respuesta.
 
-## Estructura del Flujo (Mermaid)
+## Estructura del Flujo 
 
 ```mermaid
 graph TD
